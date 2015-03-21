@@ -1,13 +1,14 @@
 CC = gcc
 CFLAGS = -c -ansi -Wall
+VPATH = src
 
 all: diskinfo
 
 diskinfo: diskinfo.o
-	$(CC) diskinfo.o -o diskinfo
+	$(CC) $< -o $@
 
 diskinfo.o: diskinfo.c
-	$(CC) $(CFLAGS) diskinfo.c
+	$(CC) $(CFLAGS) $<
 
 clean:
 	rm -rf *.o diskinfo
