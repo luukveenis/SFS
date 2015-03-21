@@ -51,8 +51,7 @@ int main(int argc, char **argv){
     read_str(os_name, data, 3, 8);
 
     printf("OS Name: %s\n", os_name);
-    printf("Sector size: %d\n", secsize);
-    printf("Total size: %d\n", totsize);
+    printf("Total size of the disk: %d\n", totsize);
   } else {
     printf("Failed to open file '%s'\n", argv[1]);
   }
