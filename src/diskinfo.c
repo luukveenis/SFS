@@ -32,10 +32,27 @@ void read_str(char *buf, char *data, size_t offset, size_t length){
   buf[length] = '\0';
 }
 
+int get_label(char *data, char *buf, int secsize){
+  int i;
+  for(i = (19*secsize); i < (33*secsize); i+=32){
+    if ((int)data[i] == 0xE5 || (int)data[i+11] == 0x0F) continue;
+    if (!data[i]){
+      printf("Error: No volume label found\n");
+      exit(EXIT_FAILURE);
+    }
+    if (data[i+11] & 0x08){
+      read_str(buf, data, i, 8);
+      return 0;
+    }
+  }
+  return 1;
+}
+
 int main(int argc, char **argv){
   int fd, secsize, totsize;
   char *data;
   char os_name[9]; /* Leave room for terminating '\0' */
+  char vol_label[9];
   struct stat sf;
 
   if (argc != 2){
@@ -49,8 +66,10 @@ int main(int argc, char **argv){
     secsize = read_num(data, 11, 2);
     totsize = get_total_size(data, secsize);
     read_str(os_name, data, 3, 8);
+    get_label(data, vol_label, secsize);
 
     printf("OS Name: %s\n", os_name);
+    printf("Label of the disk: %s\n", vol_label);
     printf("Total size of the disk: %d\n", totsize);
   } else {
     printf("Failed to open file '%s'\n", argv[1]);
