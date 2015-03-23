@@ -63,8 +63,25 @@ int files_in_root(char *data, int secsize){
   return count;
 }
 
+int free_space(char *data, int totsecs, int secsize){
+  int space, entry, i, index1, index2;
+
+
+  for (space = 0, i = 2; i < totsecs-33+2; i++){
+    index1 = secsize + (3*i/2);
+    index2 = secsize + 1 + (3*i/2);
+    if (i % 2 == 0){
+      entry = (data[index1]) + ((data[index2] & 0x0F) << 8);
+    } else {
+      entry = ((data[index1] & 0xF0) >> 4) + (data[index2] << 8);
+    }
+    if (entry == 0x00) space += secsize;
+  }
+  return space;
+}
+
 int main(int argc, char **argv){
-  int fd, secsize, totsecs, totsize, files;
+  int fd, secsize, totsecs, totsize, space, files;
   char *data;
   char os_name[9]; /* Leave room for terminating '\0' */
   char vol_label[9];
@@ -82,12 +99,14 @@ int main(int argc, char **argv){
     totsecs = total_sectors(data);
     totsize = totsecs * secsize;
     files = files_in_root(data, secsize);
+    space = free_space(data, totsecs, secsize);
     read_str(os_name, data, 3, 8);
     get_label(data, vol_label, secsize);
 
     printf("OS Name: %s\n", os_name);
     printf("Label of the disk: %s\n", vol_label);
     printf("Total size of the disk: %d\n", totsize);
+    printf("Free space: %d\n", space);
     printf("==============\n");
     printf("The number of files in the root directory"
         " (not including subdirectories): %d\n", files);
