@@ -7,7 +7,6 @@
 
 int read_num(char *data, size_t offset, size_t size){
   int retval, i;
-
   for(i=0, retval=0; i<size; i++){
     retval += data[offset+i] << (8*i);
   }
@@ -19,7 +18,6 @@ int total_sectors(char *data){
   if (totalsecs == 0){
     totalsecs = read_num(data, 32, 4);
   }
-
   return totalsecs;
 }
 
@@ -65,7 +63,6 @@ int files_in_root(char *data, int secsize){
 
 int free_space(char *data, int totsecs, int secsize){
   int space, entry, i, index1, index2;
-
 
   for (space = 0, i = 2; i < totsecs-33+2; i++){
     index1 = secsize + (3*i/2);
