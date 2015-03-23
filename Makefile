@@ -2,13 +2,16 @@ CC = gcc
 CFLAGS = -c -ansi -Wall
 VPATH = src
 
-all: diskinfo
+all: diskinfo disklist
 
 diskinfo: diskinfo.o
 	$(CC) $< -o $@
 
-diskinfo.o: diskinfo.c
+disklist: disklist.o
+	$(CC) $< -o $@
+
+%.o: %.c
 	$(CC) $(CFLAGS) $<
 
 clean:
-	rm -rf *.o diskinfo
+	rm -rf *.o diskinfo disklist
