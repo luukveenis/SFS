@@ -90,13 +90,14 @@ int free_space(char *data, int totsecs, int secsize){
 }
 
 void process_disk(char *data, disk_info *info){
+    int secsize = read_num(data, 11, 2);
     read_str(info->os_name, data, 3, 8);
-    get_label(data, info->volume_label, info->sector_size);
-    info->sector_size = read_num(data, 11, 2);
+    get_label(data, info->volume_label, secsize);
+    info->sector_size = secsize;
     info->total_sectors = total_sectors(data);
-    info->total_size = info->total_sectors * info->sector_size;
-    info->files_in_root = files_in_root(data, info->sector_size);
-    info->free_space = free_space(data, info->total_sectors, info->sector_size);
+    info->total_size = info->total_sectors * secsize;
+    info->files_in_root = files_in_root(data, secsize);
+    info->free_space = free_space(data, info->total_sectors, secsize);
     info->num_fats = read_num(data, 16, 1);
     info->sectors_per_fat = read_num(data, 22, 2);
 }
