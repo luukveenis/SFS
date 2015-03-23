@@ -5,6 +5,18 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+typedef struct disk_info {
+  char os_name[9];
+  char volume_label[9];
+  int sector_size;
+  int total_sectors;
+  int total_size;
+  int free_space;
+  int files_in_root;
+  int num_fats;
+  int sectors_per_fat;
+} disk_info;
+
 int read_num(char *data, size_t offset, size_t size){
   int retval, i;
   for(i=0, retval=0; i<size; i++){
@@ -77,12 +89,36 @@ int free_space(char *data, int totsecs, int secsize){
   return space;
 }
 
+void process_disk(char *data, disk_info *info){
+    read_str(info->os_name, data, 3, 8);
+    get_label(data, info->volume_label, info->sector_size);
+    info->sector_size = read_num(data, 11, 2);
+    info->total_sectors = total_sectors(data);
+    info->total_size = info->total_sectors * info->sector_size;
+    info->files_in_root = files_in_root(data, info->sector_size);
+    info->free_space = free_space(data, info->total_sectors, info->sector_size);
+    info->num_fats = read_num(data, 16, 1);
+    info->sectors_per_fat = read_num(data, 22, 2);
+}
+
+void print_info(disk_info info){
+    printf("OS Name: %s\n", info.os_name);
+    printf("Label of the disk: %s\n", info.volume_label);
+    printf("Total size of the disk: %d\n", info.total_size);
+    printf("Free space: %d\n", info.free_space);
+    printf("==============\n");
+    printf("The number of files in the root directory"
+        " (not including subdirectories): %d\n", info.files_in_root);
+    printf("==============\n");
+    printf("Number of FAT copies: %d\n", info.num_fats);
+    printf("Sectors per FAT: %d\n", info.sectors_per_fat);
+}
+
 int main(int argc, char **argv){
-  int fd, secsize, totsecs, totsize, space, files, fats, sec_per_fat;
+  int fd;
   char *data;
-  char os_name[9]; /* Leave room for terminating '\0' */
-  char vol_label[9];
   struct stat sf;
+  disk_info info;
 
   if (argc != 2){
     printf("Error: Usage: diskinfo <path-to-disk-images>\n");
@@ -92,26 +128,8 @@ int main(int argc, char **argv){
     fstat(fd, &sf);
     data = mmap(NULL,sf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
-    secsize = read_num(data, 11, 2);
-    totsecs = total_sectors(data);
-    totsize = totsecs * secsize;
-    files = files_in_root(data, secsize);
-    space = free_space(data, totsecs, secsize);
-    fats = read_num(data, 16, 1);
-    sec_per_fat = read_num(data, 22, 2);
-    read_str(os_name, data, 3, 8);
-    get_label(data, vol_label, secsize);
-
-    printf("OS Name: %s\n", os_name);
-    printf("Label of the disk: %s\n", vol_label);
-    printf("Total size of the disk: %d\n", totsize);
-    printf("Free space: %d\n", space);
-    printf("==============\n");
-    printf("The number of files in the root directory"
-        " (not including subdirectories): %d\n", files);
-    printf("==============\n");
-    printf("Number of FAT copies: %d\n", fats);
-    printf("Sectors per FAT: %d\n", sec_per_fat);
+    process_disk(data, &info);
+    print_info(info);
   } else {
     printf("Failed to open file '%s'\n", argv[1]);
   }
