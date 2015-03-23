@@ -60,8 +60,6 @@ int files_in_root(char *data, int secsize){
     if ((int)data[i] == 0xE5 || (int)data[i+11] == 0x0F
         || data[i+11] & 0x08 || data[i+11] & 0x10) continue;
     if (!data[i]) return count;
-    printf("Data[i]: %x\n", data[i]);
-    printf("Data[i+11]: %x\n", data[i+11]);
     ++count;
   }
   return count;
