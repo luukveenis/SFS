@@ -81,7 +81,7 @@ int free_space(char *data, int totsecs, int secsize){
 }
 
 int main(int argc, char **argv){
-  int fd, secsize, totsecs, totsize, space, files, fats;
+  int fd, secsize, totsecs, totsize, space, files, fats, sec_per_fat;
   char *data;
   char os_name[9]; /* Leave room for terminating '\0' */
   char vol_label[9];
@@ -101,6 +101,7 @@ int main(int argc, char **argv){
     files = files_in_root(data, secsize);
     space = free_space(data, totsecs, secsize);
     fats = read_num(data, 16, 1);
+    sec_per_fat = read_num(data, 22, 2);
     read_str(os_name, data, 3, 8);
     get_label(data, vol_label, secsize);
 
@@ -113,6 +114,7 @@ int main(int argc, char **argv){
         " (not including subdirectories): %d\n", files);
     printf("==============\n");
     printf("Number of FAT copies: %d\n", fats);
+    printf("Sectors per FAT: %d\n", sec_per_fat);
   } else {
     printf("Failed to open file '%s'\n", argv[1]);
   }
