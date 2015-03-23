@@ -5,6 +5,8 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+/* Data structure we can read all the disk information into
+ * so that it can be used in other places in the program */
 typedef struct disk_info {
   char os_name[9];
   char volume_label[9];
@@ -17,6 +19,9 @@ typedef struct disk_info {
   int sectors_per_fat;
 } disk_info;
 
+/* Reads a number of 'size' bytes from the disk image copied into
+ * 'data', starting at the given offset.
+ * This will convert it from little endian to big endian. */
 int read_num(char *data, size_t offset, size_t size){
   int retval, i;
   for(i=0, retval=0; i<size; i++){
@@ -25,6 +30,7 @@ int read_num(char *data, size_t offset, size_t size){
   return retval;
 }
 
+/* Returns the total number of sectors in the disk */
 int total_sectors(char *data){
   int totalsecs = read_num(data, 19, 2);
   if (totalsecs == 0){
@@ -40,6 +46,8 @@ void read_str(char *buf, char *data, size_t offset, size_t length){
   buf[length] = '\0';
 }
 
+/* Searches the root directory for the volume label.
+ * The label should always be present, so we exit with failure if it is not. */
 int get_label(char *data, char *buf, int secsize){
   int i;
   for(i = (19*secsize); i < (33*secsize); i+=32){
@@ -73,6 +81,8 @@ int files_in_root(char *data, int secsize){
   return count;
 }
 
+/* Calculate the free space in the disk by looking for empty entries in the
+ * FAT table, each of which corresponds to an empty sector. */
 int free_space(char *data, int totsecs, int secsize){
   int space, entry, i, index1, index2;
 
@@ -89,6 +99,8 @@ int free_space(char *data, int totsecs, int secsize){
   return space;
 }
 
+/* Populates the disk_info struct pointed to by info with the correct
+ * values for the disk image copied into data. */
 void process_disk(char *data, disk_info *info){
     int secsize = read_num(data, 11, 2);
     read_str(info->os_name, data, 3, 8);
@@ -102,6 +114,7 @@ void process_disk(char *data, disk_info *info){
     info->sectors_per_fat = read_num(data, 22, 2);
 }
 
+/* Simply print the disk info in the specified output format */
 void print_info(disk_info info){
     printf("OS Name: %s\n", info.os_name);
     printf("Label of the disk: %s\n", info.volume_label);
