@@ -14,15 +14,13 @@ int read_num(char *data, size_t offset, size_t size){
   return retval;
 }
 
-int get_total_size(char *data, int secsize){
-  int totalsecs;
-
-  totalsecs = read_num(data, 19, 2);
+int total_sectors(char *data){
+  int totalsecs = read_num(data, 19, 2);
   if (totalsecs == 0){
     totalsecs = read_num(data, 32, 4);
   }
 
-  return (totalsecs * secsize);
+  return totalsecs;
 }
 
 /* Copies the string of given length from data into buf,
@@ -66,7 +64,7 @@ int files_in_root(char *data, int secsize){
 }
 
 int main(int argc, char **argv){
-  int fd, secsize, totsize, files;
+  int fd, secsize, totsecs, totsize, files;
   char *data;
   char os_name[9]; /* Leave room for terminating '\0' */
   char vol_label[9];
@@ -81,7 +79,8 @@ int main(int argc, char **argv){
     data = mmap(NULL,sf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
     secsize = read_num(data, 11, 2);
-    totsize = get_total_size(data, secsize);
+    totsecs = total_sectors(data);
+    totsize = totsecs * secsize;
     files = files_in_root(data, secsize);
     read_str(os_name, data, 3, 8);
     get_label(data, vol_label, secsize);
