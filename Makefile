@@ -4,11 +4,11 @@ VPATH = src
 
 all: diskinfo disklist
 
-diskinfo: diskinfo.o
-	$(CC) $< -o $@
+diskinfo: diskinfo.o util.o
+	$(CC) $^ -o $@
 
-disklist: disklist.o
-	$(CC) $< -o $@
+disklist: disklist.o util.o
+	$(CC) $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) $<
