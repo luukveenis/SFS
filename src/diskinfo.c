@@ -22,7 +22,7 @@ typedef struct disk_info {
 } disk_info;
 
 /* Returns the total number of sectors in the disk */
-int total_sectors(char *data){
+int total_sectors(unsigned char *data){
   int totalsecs = read_num(data, 19, 2);
   if (totalsecs == 0){
     totalsecs = read_num(data, 32, 4);
@@ -32,7 +32,7 @@ int total_sectors(char *data){
 
 /* Searches the root directory for the volume label.
  * The label should always be present, so we exit with failure if it is not. */
-int get_label(char *data, char *buf, int secsize){
+int get_label(unsigned char *data, char *buf, int secsize){
   int i;
   for(i = (19*secsize); i < (33*secsize); i+=32){
     if ((int)data[i] == 0xE5 || (int)data[i+11] == 0x0F) continue;
@@ -54,7 +54,7 @@ int get_label(char *data, char *buf, int secsize){
  * 0x08 in entry i+11 corresponds to a volume label
  * 0x10 in entry i+11 corresponds to a subdirectory
  * !data[i] tests if the rest of the directory is emtpy */
-int files_in_root(char *data, int secsize){
+int files_in_root(unsigned char *data, int secsize){
   int i, count;
   for(count = 0, i = (19*secsize); i < (33*secsize); i+=32){
     if ((int)data[i] == 0xE5 || (int)data[i+11] == 0x0F
@@ -67,7 +67,7 @@ int files_in_root(char *data, int secsize){
 
 /* Calculate the free space in the disk by looking for empty entries in the
  * FAT table, each of which corresponds to an empty sector. */
-int free_space(char *data, int totsecs, int secsize){
+int free_space(unsigned char *data, int totsecs, int secsize){
   int space, entry, i, index1, index2;
 
   for (space = 0, i = 2; i < totsecs-33+2; i++){
@@ -85,7 +85,7 @@ int free_space(char *data, int totsecs, int secsize){
 
 /* Populates the disk_info struct pointed to by info with the correct
  * values for the disk image copied into data. */
-void process_disk(char *data, disk_info *info){
+void process_disk(unsigned char *data, disk_info *info){
     int secsize = read_num(data, 11, 2);
     read_str(info->os_name, data, 3, 8);
     get_label(data, info->volume_label, secsize);
@@ -114,7 +114,7 @@ void print_info(disk_info info){
 
 int main(int argc, char **argv){
   int fd;
-  char *data;
+  unsigned char *data;
   struct stat sf;
   disk_info info;
 
