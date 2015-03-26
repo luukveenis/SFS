@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -19,8 +20,9 @@ struct time {
 };
 
 struct fdata {
-  int is_file;
+  char type;
   char name[9];
+  char ext[4];
   int size;
   struct date cdate;
   struct time ctime;
@@ -41,9 +43,14 @@ void parse_time(struct time *ftime, unsigned char *data, int offset){
 }
 
 void print_file(struct fdata file){
-  printf("%c ", file.is_file ? 'F' : 'D');
+  char name[20];
+  strcpy(name, file.name);
+  strcat(name, ".");
+  strcat(name, file.ext);
+
+  printf("%c ", file.type);
   printf("%10d ", file.size);
-  printf("%-20s ", file.name);
+  printf("%-20s ", name);
   printf("%4d-%02d-%02d ", file.cdate.year, file.cdate.month, file.cdate.day);
   printf("%02d:%02d\n", file.ctime.hours, file.ctime.mins);
 }
@@ -58,10 +65,11 @@ void list_root(unsigned char *data, int secsize){
         || data[i+11] & 0x08) continue;
     if (!data[i]) return; /* No more files */
 
-    file.is_file = (data[i+11] & 0x10) ? 0 : 1;
+    file.type = (data[i+11] & 0x10) ? 'D' : 'F';
     file.size = read_num(data, (i+28), 4);
     read_str(file.name, data, i, 8);
     nullify_spaces(file.name, 8);
+    read_str(file.ext, data, i+8, 3);
     parse_date(&file.cdate, data, i);
     parse_time(&file.ctime, data, i);
 
