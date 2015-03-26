@@ -81,7 +81,6 @@ int main(int argc, char **argv){
     fstat(fd, &sf);
     data = mmap(NULL,sf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 
-    /* Implement root directory listing here */
     secsize = read_num(data, 11, 2);
     list_root(data, secsize);
   } else {
