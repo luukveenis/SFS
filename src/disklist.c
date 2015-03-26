@@ -40,6 +40,14 @@ void parse_time(struct time *ftime, unsigned char *data, int offset){
   ftime->secs = (time & 0x001F);
 }
 
+void print_file(struct fdata file){
+  printf("%c ", file.is_file ? 'F' : 'D');
+  printf("%10d ", file.size);
+  printf("%-20s ", file.name);
+  printf("%4d-%02d-%02d ", file.cdate.year, file.cdate.month, file.cdate.day);
+  printf("%02d:%02d\n", file.ctime.hours, file.ctime.mins);
+}
+
 void list_root(unsigned char *data, int secsize){
   struct fdata file;
   int i;
@@ -55,6 +63,8 @@ void list_root(unsigned char *data, int secsize){
     read_str(file.name, data, i, 8);
     parse_date(&file.cdate, data, i);
     parse_time(&file.ctime, data, i);
+
+    print_file(file);
   }
 }
 
