@@ -61,6 +61,7 @@ void list_root(unsigned char *data, int secsize){
     file.is_file = (data[i+11] & 0x10) ? 0 : 1;
     file.size = read_num(data, (i+28), 4);
     read_str(file.name, data, i, 8);
+    nullify_spaces(file.name, 8);
     parse_date(&file.cdate, data, i);
     parse_time(&file.ctime, data, i);
 

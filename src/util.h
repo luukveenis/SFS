@@ -3,5 +3,6 @@
 
 int read_num(unsigned char*, size_t, size_t);
 void read_str(char*, unsigned char*, size_t, size_t);
+void nullify_spaces(char*, size_t);
 
 #endif

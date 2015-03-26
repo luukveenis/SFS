@@ -17,3 +17,11 @@ void read_str(char *buf, unsigned char *data, size_t offset, size_t length){
   strncpy(buf, ((char*)data + offset), length);
   buf[length] = '\0';
 }
+
+/* Replace spaces with \0 */
+void nullify_spaces(char *buf, size_t length){
+  int i;
+  for (i=0; i<length; i++){
+    if (buf[i] == ' ') buf[i] = '\0';
+  }
+}
