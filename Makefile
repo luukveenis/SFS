@@ -10,7 +10,7 @@ diskinfo: diskinfo.o util.o
 disklist: disklist.o util.o
 	$(CC) $^ -o $@
 
-diskget: diskget.o
+diskget: diskget.o util.o
 	$(CC) $^ -o $@
 
 %.o: %.c
