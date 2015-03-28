@@ -40,6 +40,21 @@ int creation_time(){
   return time;
 }
 
+int creation_date(){
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+  int y = timeinfo->tm_year - 80; /* we want since 1980 instead of 1900 */
+  int m = timeinfo->tm_mon + 1;
+  int d = timeinfo->tm_mday;
+  int date = ((y & 0x7f) << 9) | ((m & 0xf) << 5) | (d & 0x1f);
+
+  return date;
+
+}
+
 void create_root_entry(unsigned char* data, disk_info info, char *fname, int size, int fclust){
   int i, j, basel, extl;
   char *name = strdup(fname); /* So we don't lose the original name with strtok */
@@ -56,6 +71,7 @@ void create_root_entry(unsigned char* data, disk_info info, char *fname, int siz
       write_num(data, size, i+28, 4);
       write_num(data, fclust, i+26, 2);
       write_num(data, creation_time(), i+14, 2);
+      write_num(data, creation_date(), i+16, 2);
       return;
     }
   }
