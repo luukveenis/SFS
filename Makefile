@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -c -ansi -Wall
+CFLAGS = -c -Wall
 VPATH = src
 
 all: diskinfo disklist diskget diskput
