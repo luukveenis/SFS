@@ -15,6 +15,14 @@ int read_num(unsigned char *data, size_t offset, size_t size){
   return retval;
 }
 
+void write_num(unsigned char *data, int num, size_t offset, size_t size){
+  int i;
+  unsigned int mask = 0xFF;
+  for(i = 0; i < size; i++){
+    data[offset+i] = (num & (mask << 8*i)) >> (i*8);
+  }
+}
+
 /* Copies the string of given length from data into buf,
  * starting at the offset */
 void read_str(char *buf, unsigned char *data, size_t offset, size_t length){
@@ -77,7 +85,7 @@ int free_space(unsigned char *data, int totsecs, int secsize){
     if (i % 2 == 0){
       entry = (data[index1]) + ((data[index2] & 0x0F) << 8);
     } else {
-      entry = ((data[index1] & 0xF0) >> 4) + (data[index2] << 8);
+      entry = ((data[index1] & 0xF0) >> 4) + (data[index2] << 4);
     }
     if (entry == 0x00) space += secsize;
   }

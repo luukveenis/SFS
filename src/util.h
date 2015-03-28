@@ -16,6 +16,7 @@ typedef struct disk_info {
 } disk_info;
 
 int read_num(unsigned char*, size_t, size_t);
+void write_num(unsigned char*, int, size_t, size_t);
 void read_str(char*, unsigned char*, size_t, size_t);
 void process_disk(unsigned char*, disk_info*);
 void nullify_spaces(char*, size_t);
