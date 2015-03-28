@@ -56,7 +56,7 @@ int creation_date(){
 }
 
 void create_root_entry(unsigned char* data, disk_info info, char *fname, int size, int fclust){
-  int i, j, basel, extl;
+  int i, j, basel, extl, time, date;
   char *name = strdup(fname); /* So we don't lose the original name with strtok */
   char *base = strtok(name, ".");
   char *ext = strtok(NULL, ".");
@@ -70,8 +70,14 @@ void create_root_entry(unsigned char* data, disk_info info, char *fname, int siz
       data[i+11] = 0x00;
       write_num(data, size, i+28, 4);
       write_num(data, fclust, i+26, 2);
-      write_num(data, creation_time(), i+14, 2);
-      write_num(data, creation_date(), i+16, 2);
+
+      time = creation_time();
+      date = creation_date();
+      write_num(data, time, i+14, 2);
+      write_num(data, date, i+16, 2);
+      write_num(data, date, i+18, 2);
+      write_num(data, time, i+22, 2);
+      write_num(data, date, i+24, 2);
       return;
     }
   }
