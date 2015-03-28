@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -25,6 +26,20 @@ int next_free_sector(unsigned char *data, disk_info info, int current){
   exit(EXIT_FAILURE);
 }
 
+int creation_time(){
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time (&rawtime);
+  timeinfo = localtime (&rawtime);
+  int h = timeinfo->tm_hour;
+  int m = timeinfo->tm_min;
+  int s = timeinfo->tm_sec;
+  int time = ((h & 0x1f) << 11) | ((m & 0x3f) << 5) | (s & 0x1f);
+
+  return time;
+}
+
 void create_root_entry(unsigned char* data, disk_info info, char *fname, int size, int fclust){
   int i, j, basel, extl;
   char *name = strdup(fname); /* So we don't lose the original name with strtok */
@@ -40,6 +55,7 @@ void create_root_entry(unsigned char* data, disk_info info, char *fname, int siz
       data[i+11] = 0x00;
       write_num(data, size, i+28, 4);
       write_num(data, fclust, i+26, 2);
+      write_num(data, creation_time(), i+14, 2);
       return;
     }
   }
