@@ -25,10 +25,6 @@ int fat_entry(unsigned char *data, int fclust, size_t secsize){
   return entry;
 }
 
-int physical_entry(int logical_entry){
-  return (logical_entry + 31) * 512;
-}
-
 void find_file(unsigned char *data, finfo *f, size_t secsize, char *file){
   int i;
   char *in_fname, *in_ext;

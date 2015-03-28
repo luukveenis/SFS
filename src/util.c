@@ -23,6 +23,10 @@ void write_num(unsigned char *data, int num, size_t offset, size_t size){
   }
 }
 
+int physical_entry(int logical_entry){
+  return (logical_entry + 31) * 512;
+}
+
 /* Copies the string of given length from data into buf,
  * starting at the offset */
 void read_str(char *buf, unsigned char *data, size_t offset, size_t length){

@@ -7,9 +7,11 @@
 
 #include "util.h"
 
-int next_free_sector(unsigned char *data, disk_info info){
+int next_free_sector(unsigned char *data, disk_info info, int current){
   int i, entry, index1, index2;
   for (i = 2; i < info.total_sectors-33+2; i++){
+    if (i == current) continue;
+
     index1 = info.sector_size + (3*i/2);
     index2 = info.sector_size + 1 + (3*i/2);
     if (i % 2 == 0){
@@ -17,7 +19,7 @@ int next_free_sector(unsigned char *data, disk_info info){
     } else {
       entry = ((data[index1] & 0xF0) >> 4) + (data[index2] << 4);
     }
-    if (entry == 0x00) return entry;
+    if (entry == 0x00) return i;
   }
   printf("Error: No empty FAT entries\n");
   exit(EXIT_FAILURE);
@@ -45,37 +47,56 @@ void create_root_entry(unsigned char* data, disk_info info, char *fname, int siz
   exit(EXIT_FAILURE);
 }
 
-void write_file(unsigned char *data, disk_info info, char *fname){
-  FILE *fin;
-  struct stat sf;
-  int fcluster = next_free_sector(data, info);
+void create_fat_entry(unsigned char *data, int index, int value, int secsize){
+  int index1, index2;
 
-  if ((fin = fopen(fname, "r"))){
+  index1 = secsize + (3*index/2);
+  index2 = secsize + 1 + (3*index/2);
+  if (index % 2 == 0){
+    data[index1] = value & 0xFF;
+    data[index2] = (data[index2] & 0xF0) | ((value & 0xF00) >> 8);
+  } else {
+    data[index1] = (data[index1] & 0xF) | ((value & 0xF) << 4);
+    data[index2] = (value & 0xFF0) >> 4;
+  }
+}
+
+void write_file(unsigned char *data, disk_info info, char *fname){
+  int fin, remain, i, next, pentry, towrite, last, temp;
+  unsigned char *input;
+  struct stat sf;
+  int fcluster = next_free_sector(data, info, 0);
+
+  if ((fin = open(fname, O_RDONLY))){
       stat(fname, &sf);
+      input = mmap(NULL,sf.st_size, PROT_READ, MAP_SHARED, fin, 0);
 
       if (info.free_space < sf.st_size){
         printf("Not enough free space in the disk image.\n");
       } else {
         create_root_entry(data, info, fname, (int)sf.st_size, fcluster);
+        remain = (int)sf.st_size;
+        for (next = fcluster, i = 0;
+             remain > 0;
+             remain -= 512, i++){
+          pentry = physical_entry(next);
+          last = remain > 512 ? 0 : 1;
+          towrite = last ? 512 : remain;
+          memcpy(data+pentry, input+(i*512), towrite);
+          if (last){
+            create_fat_entry(data, next, 0xFFF, info.sector_size);
+          } else {
+            temp = next;
+            next = next_free_sector(data, info, temp);
+            create_fat_entry(data, temp, next, info.sector_size);
+          }
+        }
       }
   } else {
     printf("Failed to open file: %s\n", fname);
     exit(EXIT_FAILURE);
   }
 
-}
-
-void write_to_disk(unsigned char *data, int fd, size_t size){
-  FILE *disk;
-  int i;
-  if ((disk = fdopen(fd, "w"))){
-    for (i = 0; i < size; i++){
-      fputc(data[i], disk);
-    }
-    fclose(disk);
-  } else {
-    printf("Error writing to disk image.\n");
-  }
 }
 
 int main(int argc, char **argv){
@@ -94,7 +115,6 @@ int main(int argc, char **argv){
     process_disk(data, &info);
 
     write_file(data, info, argv[2]);
-    /* write_to_disk(data, fd, sf.st_size); */
   } else {
     printf("Failed to open file '%s'\n", argv[1]);
   }
